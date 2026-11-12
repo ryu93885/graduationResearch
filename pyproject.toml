@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gradresearch"
+version = "0.1.0"
+description = "Graduation research: pneumonia detection using features outside physician-annotated regions (RSNA Pneumonia Detection Challenge 2018)"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "requests>=2.31",
+    "tqdm>=4.65",
+    "pydicom>=2.4",
+    # The RSNA DICOM files store pixels as JPEG Baseline; pydicom needs Pillow to decode them.
+    "pillow>=10.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The synthetic DICOM files in tests/conftest.py use short, non-standard UIDs.
+filterwarnings = ["ignore:Invalid value for VR UI:UserWarning"]

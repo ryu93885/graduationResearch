@@ -183,3 +183,72 @@
 1. Q-01〜Q-04 の回答を受けて方針を決める。
 2. データ構造を確認するスクリプトを作る（ラベル件数、AP/PA とラベルのクロス集計、BBox の統計、患者マッピング）。データ取得は Q-04 の確認後に行う。
 3. 採用した指摘を反映して、進捗報告書の改訂版を作る。
+
+---
+
+## 2026-11-12 データセット（RSNA Pneumonia Detection Challenge 2018）の基礎の確認
+
+### 実施したこと
+
+- データセットの基礎を一次資料で確認しました。読めたのは、RSNA 公式配布ページ、Dataset Description（V1 02/07/2022）、Terms of Use の3つです。
+- Shih et al. (2019) の全文は、配布元の自動アクセス防止に止められて取得できませんでした。論文の内容は、検索結果に出た本文の抜粋（二次情報）で補っています。下の表の「出典」列で区別しています。
+- このセッション用に個人用クラウド環境「graduationResearch」を作り、www.rsna.org と escholarship.org への接続を許可しました（escholarship.org は自動アクセス防止のため実際には読めませんでした）。
+
+### 確認できた事実
+
+出典の略号：**公式**＝RSNA 公式ページ／Dataset Description／Terms、**論文抜粋**＝検索結果に表示された Shih et al. 本文の抜粋、**二次**＝その他の論文・Kaggle の議論、**未確認**＝実データで確かめる必要があるもの
+
+| 項目 | 内容 | 出典 |
+|---|---|---|
+| 元データ | NIH ChestX-ray（CXR8 / ChestX-ray14）。112,120 枚・30,805 人の正面像。疾患ラベルは読影レポートから自然言語処理で自動抽出したもの | 二次 |
+| 枚数 | NIH から選んだ正面像 30,000 枚（PA 16,248 枚、AP 13,752 枚）。複数読影は 4,527 枚 | 公式 |
+| 選び方 | NIH ラベルで肺炎・浸潤・コンソリデーション陽性 15,000 枚、No Finding 7,500 枚、その他の所見 7,500 枚 | 二次 |
+| 画像形式 | PNG を DICOM に変換し、性別・年齢・撮影方向（AP/PA）のタグを追加。1024×1024 | 公式（サイズは二次） |
+| 読影者 | 18 人・16 施設（うち STR の胸部放射線科医 12 人）、平均経験 10.6 年。MD.ai で手作業の BBox | 公式 |
+| 読影の分担 | RSNA の読影者 6 人が 5,000 枚ずつ単独で読影。4,527 枚は 3 人（STR 2 人＋RSNA 1 人）が読影し、不一致は胸部専門医が調整 | 論文抜粋・二次 |
+| 元のラベル | Opacity（高 / 中 / 低確率）、No Opacity / Not Normal、Normal の5種類。胸部専門医に回す「Question」フラグもあった | 論文抜粋 |
+| 陰影の定義 | Fleischner Society の定義に基づき「周囲より不透明な領域」で、咳と発熱のある患者なら肺炎の可能性が低〜高のもの | 論文抜粋 |
+| BBox の描き方 | 疑わしい陰影全体を含む最小の矩形。離れた陰影には複数の BBox | 論文抜粋 |
+| 複数読影の BBox | 読影者の BBox の交差（重なり部分）を採用。そのため評価用データの BBox は小さめになる | 論文抜粋 |
+| 訓練用と評価用の違い | 訓練画像は胸部専門ではない RSNA の読影者、評価画像は STR の胸部専門医のパネルがラベル付け | 論文抜粋 |
+| Not Normal の意味 | 肺に陰影があっても、肺炎を疑う陰影ではないもの | 論文抜粋 |
+| Kaggle 版の分割 | stage 1：train 25,684 / test 1,000。stage 2：train 26,684 / test 3,000。3人読影のうち約 1,500 枚が train、3,000 枚が test | 二次 |
+| Kaggle 版 stage 2 train の内訳 | Lung Opacity 6,012 枚（BBox 9,555 個、陽性率 約 22.5%）、Not Normal 11,821 枚、Normal 8,851 枚 | 二次（6,012 は行数からの計算） |
+| 公式配布の中身 | ①初期アノテーションに使った画像（3.3 GB）と初期アノテーション（JSON）、②チャレンジで使った画像とアノテーション（JSON）、③RSNA 画像と NIH 元画像の対応表（JSON） | 公式 |
+| 利用条件 | 学術・教育・商用・非商用で利用可。個人の特定や接触の禁止。共有・再配布時は NIH と RSNA の両方の帰属表示が必要 | 公式 |
+
+### 新しい指摘事項
+
+| 番号 | 区分 | 指摘 | 報告書の該当箇所 | 優先度 | 状態 |
+|---|---|---|---|---|---|
+| R-15 | データ | 公式配布には「初期アノテーション」と「チャレンジ用（調整済み）」の2系統がある。どちらを主に使うかを決める（Q-05） | 2.4 | 高 | 未決定 |
+| R-16 | データ | 単独読影と3人読影（BBox の交差）では BBox の大きさや品質が違う。3人読影かどうかを記録し、層別に評価する（R-07, R-09 と関連） | 2.1, 3.3, 6.1 | 高 | 未決定 |
+| R-17 | データ | 陽性ラベルは確率（低・中・高）をまとめたもので、ノイズを含む。初期アノテーションから確率が取れれば「高確率のみ」で感度分析する | 2.2, 6.1 | 中 | 未決定 |
+| R-18 | 解釈 | 肺炎疑い例を多く含むように選ばれたデータなので、陽性率は臨床と違う。Precision などはそのまま一般化できないと明記する | 2.1, 4.1, 6.1 | 中 | 未決定 |
+| R-19 | データ | DICOM タグは性別・年齢・撮影方向だけで、機器や施設の情報はない。メタデータの交絡はこの3項目に限られるが、画像に写り込んだ文字マーカーなどは残りうるので目視で確認する（R-06 と関連） | 2.1, 3.3 | 中 | 未決定 |
+| R-20 | 記述 | Dataset Description には「Non-commercial purpose」、Terms と配布ページには「商用・非商用で利用可」とあり、記載が食い違う。学術利用はどちらでも問題ないが、報告書 2.3 に一言書く | 2.3 | 低 | 未決定 |
+| R-21 | 記述 | 報告書 2.1 の「12,274 individuals」は、今回の一次資料では確認できなかった。論文本文か対応表で確かめる | 2.1 | 中 | 未決定 |
+
+### ユーザーへの確認事項（追加）
+
+| 番号 | 内容 | 決まると何が決まるか |
+|---|---|---|
+| Q-05 | 主解析に使うアノテーション系統（提案：主解析は「チャレンジ用（調整済み）」、読影者ごとの解析や確率の解析には「初期アノテーション」を使う。中身を見てから確定する） | データ読み込みプログラムの仕様 |
+| Q-06 | Shih et al. (2019) の PDF を大学経由で入手してアップロードできるか | R-16, R-17, R-21 の確認 |
+
+### データ取得後に確認すること（追加）
+
+- 公式配布の JSON の構造（読影者 ID、確率のラベル、3人読影かどうかの情報が含まれているか）
+- 公式配布の総枚数（30,000 枚）と Kaggle 版の合計（26,684 + 3,000 = 29,684 枚）の差の理由
+- 陽性・陰性それぞれの AP/PA の比率（全体では AP が約 46%）
+- 年齢の外れ値の有無、画像に写り込んだ文字マーカーの有無
+
+### 参考にした資料
+
+- RSNA. RSNA Pneumonia Detection Challenge (2018). https://www.rsna.org/education/ai-resources-and-training/ai-image-challenge/RSNA-Pneumonia-Detection-Challenge-2018
+- RSNA. 2018 RSNA Pneumonia Detection Challenge Dataset Description (V1 02/07/2022). 上記ページの「Dataset description」
+- RSNA. Pneumonia Detection Challenge Terms of Use and Attribution. 上記ページの「Terms of use and acknowledgments」
+- Shih G, et al. Augmenting the NIH Chest Radiograph Dataset with Expert Annotations of Possible Pneumonia. *Radiology: AI*, 2019. https://doi.org/10.1148/ryai.2019180041（全文は未取得。検索結果の抜粋のみ）
+- Wang X, et al. ChestX-ray8: Hospital-scale Chest X-ray Database and Benchmarks on Weakly-Supervised Classification and Localization of Common Thorax Diseases. *IEEE CVPR*, pp. 3462-3471, 2017.
+- Gabruseva T, et al. Deep Learning for Automatic Pneumonia Detection. *CVPR Workshops*, 2020.（Kaggle 版の内訳）
+- Kaggle. RSNA Pneumonia Detection Challenge, Discussion 64723.（3人読影の分割と調整の手順）

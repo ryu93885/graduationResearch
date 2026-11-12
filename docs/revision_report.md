@@ -378,3 +378,20 @@
 2. 患者単位の train / val / test 分割の仕様を決めて作る（R-03, R-16, R-23）。
 3. 画像の前処理と保存（R-24）。
 4. Model B（画像全体）の最小構成の学習と、メタデータモデル（R-06, R-19, R-22）。
+
+## 2026-11-12 データセット資料の英語版の作成
+
+### 実施したこと
+
+- ユーザーの依頼で、データセット資料 [`docs/dataset/rsna_pneumonia_2018.md`](dataset/rsna_pneumonia_2018.md) の英語版 [`docs/dataset/rsna_pneumonia_2018_EN.md`](dataset/rsna_pneumonia_2018_EN.md) を作成しました。
+  - 日本語版を原本とし、内容が食い違う場合は日本語版を優先すると英語版の冒頭に書きました。
+  - 出典の区分は英語で「Data / Official / Paper excerpt / Secondary / General knowledge / Unverified」としました。
+  - 「1人読影」は single read、「3人読影」は multi-read（read by three readers）、「調整」は adjudication と訳しました（コードの用語に合わせています）。
+  - 数値、R・Q 番号、見出しと表の行数が原文と一致することをプログラムで照合しました。
+- 日本語版は変更していません。
+
+### ユーザーへの確認事項（追加）
+
+| 番号 | 内容 | 状態 |
+|---|---|---|
+| Q-08 | 今後、日本語版のデータセット資料を更新したときに、英語版も同時に更新するか（提案：同時に更新する） | 未回答 |

@@ -1,12 +1,12 @@
 # Dataset (never commit images or annotations)
-data/
+/data/
 *.dcm
 *.zip
 
 # Experiment outputs
-outputs/
-runs/
-checkpoints/
+/outputs/
+/runs/
+/checkpoints/
 *.pt
 *.pth
 *.ckpt

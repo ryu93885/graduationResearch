@@ -72,6 +72,27 @@
 | pneumonia_related | 173 | 5,113 | 6,009 | 3,705 | 15,000 |
 | All | 316 | 7,106 | 12,788 | 9,790 | 30,000 |
 
+### difficulty_x_class
+
+評価用の層（行、`src/gradresearch/data/strata.py`）と最終ラベル（列）。multi_difficult は3人読影で意見が割れた、または全員一致の判定が最終ラベルで覆された画像。single_low_prob は低確率の BBox しか描かれなかった画像。
+
+| difficulty_group | Lung Opacity | No Lung Opacity / Not Normal | Normal | All |
+|---|---|---|---|---|
+| multi_difficult | 774 | 772 | 90 | 1,636 |
+| multi_unanimous | 865 | 662 | 1,349 | 2,876 |
+| single_low_prob | 2 | 1,687 | 2 | 1,691 |
+| single_other | 5,465 | 9,667 | 8,349 | 23,481 |
+| All | 7,106 | 12,788 | 9,790 | 29,684 |
+
+### difficult_direction
+
+multi_difficult の内訳（最終ラベルが陰性で陽性と読んだ読影者がいる / 最終ラベルが陽性で陰性と読んだ読影者がいる）。
+
+| difficult_direction | images |
+|---|---|
+| final_negative_with_positive_read | 862 |
+| final_positive_with_negative_read | 774 |
+
 ### stage1_x_multiread
 
 Kaggle stage 1 train に含まれるか（行）と、3人読影か（列）。

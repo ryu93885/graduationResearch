@@ -14,6 +14,8 @@ RSNA Pneumonia Detection Challenge 2018 のデータを使い、次の3モデル
 
 Google Colab（自宅）と研究室のローカル GPU PC の両方で動きます。詳しくは [`docs/setup.md`](docs/setup.md) を参照してください。
 
+**実行コマンドの一覧は [`COMMANDS.md`](COMMANDS.md) にまとめています。**
+
 - **Colab**：`notebooks/01_data_download_and_inspection.ipynb` を開いて、上から順に実行します。
 - **ローカル**：次の順に実行します。
 
@@ -36,6 +38,7 @@ python scripts/inspect_dataset.py
 ## ディレクトリ構成
 
 ```
+COMMANDS.md            実行コマンドの一覧（ローカル PC）
 src/gradresearch/      Python パッケージ
   paths.py             データ・出力の保存先（Colab / ローカルを自動判定）
   data/                公式ファイルの一覧・ダウンロード・JSON と DICOM の読み込み・表の作成

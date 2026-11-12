@@ -35,6 +35,11 @@ def test_build_tables_end_to_end(raw_dir, tmp_path):
     assert images.loc["img-3", "multi_read"] and not images.loc["img-1", "multi_read"]
     assert not images.loc["img-4", "has_final_label"]
     assert images.loc["img-1", "kaggle_stage1_train"] and not images.loc["img-3", "kaggle_stage1_train"]
+    # S3: Team 1 negative, Team 2 / 2a positive, final positive -> readers disagreed
+    assert images.loc["img-3", "difficulty_group"] == "multi_difficult"
+    assert images.loc["img-3", "difficult_direction"] == "final_positive_with_negative_read"
+    assert images.loc["img-1", "difficulty_group"] == "single_other"
+    assert not images.loc["img-4", "analysis_included"]
     assert (processed / "dicom_headers.csv").exists()
 
     loaded = load_tables(processed)

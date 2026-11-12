@@ -120,7 +120,9 @@ jupyter notebook notebooks/01_data_download_and_inspection.ipynb
 | | `reader_reads.csv` | 読影者ごとの判定 |
 | | `reader_boxes.csv` | 読影者ごとの BBox と確率 |
 | | `dicom_headers.csv` | DICOM ヘッダのキャッシュ |
+| | `splits/folds_k5_seed42.csv` | 交差検証の組（`image_id, nih_patient_id, fold`） |
 | `outputs/dataset_inspection/` | `report.md`、`summary.json`、`tables/*.csv` | データ確認レポート |
+| `outputs/splits/` | `fold_balance.md`、`fold_balance*.csv` | 交差検証の組の偏りの確認 |
 
 データとその出力は `.gitignore` で除外されており、リポジトリにはコミットされません。
 

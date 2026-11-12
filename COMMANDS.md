@@ -1,7 +1,7 @@
 # 実行コマンド一覧（ローカル PC）
 
 - **作成日**：2026-11-12
-- **最終更新**：2026-11-12
+- **最終更新**：2026-11-12（6. `scripts/make_splits.py` を追加。2. の `images.csv` に評価用の層の列を追加）
 - このファイルで、プログラムを実行するコマンドを一括管理します。プログラムを追加・変更したら、ここに追記します。
 - 対象は**研究室のローカル GPU PC**です。Google Colab ではノートブックを使います（末尾の「Colab の場合」を参照）。
 - 特に書いていない限り、コマンドは**リポジトリのフォルダ（`graduationResearch/`）で、仮想環境を有効にしてから**実行します（0-3 を参照）。
@@ -16,9 +16,12 @@
 | 2 | `scripts/build_tables.py` | 解析用の表（`images.csv` など）の作成 | 2026-11-12 |
 | 3 | `scripts/inspect_dataset.py` | データ確認レポートの作成 | 2026-11-12 |
 | 4 | `tests/`（pytest） | プログラムの動作確認（テスト） | 2026-11-12 |
-| 5 | `notebooks/01_data_download_and_inspection.ipynb` | 1〜3 をノートブックで実行 | 2026-11-12 |
+| 5 | `notebooks/01_data_download_and_inspection.ipynb` | 1〜3 と 6 をノートブックで実行 | 2026-11-12 |
+| 6 | `scripts/make_splits.py` | 患者単位の5分割交差検証の分割と、偏りの確認 | 2026-11-12 |
 
-**初めてデータを用意するときの順番**：0 → 1-2 → 2-1 → 3-1
+**初めてデータを用意するときの順番**：0 → 1-2 → 2-1 → 3-1 → 6-1
+
+**プログラムを更新した後（`git pull` の後）**：2-1 → 6-1 を実行し直します（表に列が増えることがあるため）。
 
 ---
 
@@ -144,7 +147,7 @@ python scripts/download_data.py --data-dir /mnt/data/graduationResearch/data
 
 ## 2. `scripts/build_tables.py`：解析用の表の作成
 
-- **内容**：アノテーション・NIH 対応表・DICOM ヘッダから、解析に使う表を作ります。ZIP を展開せずに DICOM ヘッダを読みます。
+- **内容**：アノテーション・NIH 対応表・DICOM ヘッダから、解析に使う表を作ります。ZIP を展開せずに DICOM ヘッダを読みます。`images.csv` には評価用の層（`difficulty_group`：判断が難しい画像など）と解析対象の印（`analysis_included`）も入ります（2026-11-12 追加）。
 - **前提**：1-2 が終わっていること
 - **出力**：`data/processed/`（`images.csv`、`boxes.csv`、`reader_reads.csv`、`reader_boxes.csv`、`dicom_headers.csv`）
 - **時間の目安**：初回約 20 秒（DICOM ヘッダ 30,000 枚）、2 回目以降は数秒
@@ -243,6 +246,39 @@ pip install jupyter matplotlib
 ```bash
 jupyter notebook notebooks/01_data_download_and_inspection.ipynb
 ```
+
+---
+
+## 6. `scripts/make_splits.py`：交差検証の分割（患者単位・5分割）
+
+- **内容**：同じ患者の画像がすべて同じ組に入るように、画像を 5 つの組に分けます。最終ラベル・評価用の層・撮影方向がそろうように分け、偏りを確認したレポートを作ります。
+- **前提**：2-1 が終わっていること（`images.csv` に `difficulty_group` の列があること）
+- **出力**：
+  - `data/processed/splits/folds_k5_seed42.csv`（`image_id, nih_patient_id, fold`）
+  - `outputs/splits/fold_balance.md`（各組の内訳と偏りの判定）
+- **確認**：表示される指紋（fingerprint）が `5f2c2423bfaa75b3` なら、2026-11-12 に作った分割と同じです（公式データ・5 分割・シード 42 の場合）。Colab とローカルで同じ値になります。
+- **各回の役割**：run k では、組 k を評価用（test）、組 (k+1) を検証用（val）、残り 3 組を学習用（train）にします。
+
+### 6-1. 5 分割を作る（通常はこれ）
+
+```bash
+python scripts/make_splits.py
+```
+
+### 6-2. 分割数やシードを変えて作る（例：10 分割、シード 0）
+
+```bash
+python scripts/make_splits.py --n-folds 10 --seed 0
+```
+
+本研究では 6-1（5 分割・シード 42）の分割を使います。6-2 は確認用です。
+
+| オプション | 意味 |
+|---|---|
+| `--n-folds N` | 分割数（既定 5） |
+| `--seed S` | 同じ画像数の患者の並べ方を決めるシード（既定 42） |
+| `--out パス` | レポートの出力先 |
+| `--data-dir パス` | データの保存先を指定 |
 
 ---
 

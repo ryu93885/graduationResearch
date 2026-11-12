@@ -3,7 +3,8 @@
 Outputs (CSV, in ``processed/``):
 
 * ``images.csv``: one row per image (30,000): IDs, NIH patient ID, selection group,
-  final class / target, number of boxes, how the image was read, Kaggle stage 1
+  final class / target, number of boxes, how the image was read, evaluation strata
+  (``difficulty_group``, see ``strata.py``), ``analysis_included``, Kaggle stage 1
   membership and DICOM header fields.
 * ``boxes.csv``: final Lung Opacity boxes (x, y, w, h in pixels of the 1024x1024 image;
   x, y is the top-left corner).
@@ -23,6 +24,7 @@ from . import annotations as A
 from .dicom_meta import scan_headers
 from .mapping import load_mapping
 from .sources import SOURCES
+from .strata import difficulty_strata
 
 
 def _raw_file(raw: Path, key: str) -> Path:
@@ -65,6 +67,10 @@ def build_tables(
     id_of_study = images.set_index("study_uid")["image_id"]
     boxes.insert(0, "image_id", boxes["study_uid"].map(id_of_study))
     reads.insert(0, "image_id", reads["study_uid"].map(id_of_study))
+
+    # Evaluation strata (R-25) and the analysis set (R-23: images without a final label are excluded).
+    images = images.merge(difficulty_strata(images, reads), on="image_id", how="left", validate="one_to_one")
+    images["analysis_included"] = images["has_final_label"]
     reader_boxes = ann[ann["group"].isin(A.READER_GROUPS) & ann["w"].notna()][
         ["study_uid", "group", "reader_id", "probability", "x", "y", "w", "h"]
     ].copy()

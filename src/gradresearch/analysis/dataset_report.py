@@ -24,6 +24,8 @@ CAPTIONS = {
     "final_class": "最終ラベル（3クラス）の件数。",
     "selection_x_class": "画像選定時の NIH ラベルによるグループ（行）と最終ラベル（列）。",
     "stage1_x_multiread": "Kaggle stage 1 train に含まれるか（行）と、3人読影か（列）。",
+    "difficulty_x_class": "評価用の層（行、`src/gradresearch/data/strata.py`）と最終ラベル（列）。multi_difficult は3人読影で意見が割れた、または全員一致の判定が最終ラベルで覆された画像。single_low_prob は低確率の BBox しか描かれなかった画像。",
+    "difficult_direction": "multi_difficult の内訳（最終ラベルが陰性で陽性と読んだ読影者がいる / 最終ラベルが陽性で陰性と読んだ読影者がいる）。",
     "view_x_class": "撮影方向（行）と最終ラベル（列）。positive_rate は Lung Opacity の割合。",
     "sex_x_class": "性別（行）と最終ラベル（列）。",
     "age_by_class": "最終ラベルごとの年齢の分布。100 歳を超える値は入力ミスと考えられる。",
@@ -120,6 +122,10 @@ def label_tables(images: pd.DataFrame) -> dict[str, pd.DataFrame]:
     cls = lab["final_class"].value_counts().reindex(CLASSES)
     out["final_class"] = pd.DataFrame({"images": cls, "share": cls / cls.sum()})
     out["selection_x_class"] = pd.crosstab(images["selection_group"], images["final_class"].fillna("(no final label)"), margins=True)
+    if "difficulty_group" in lab:
+        out["difficulty_x_class"] = pd.crosstab(lab["difficulty_group"], lab["final_class"], margins=True)
+        d = lab[lab["difficult_direction"].fillna("") != ""]
+        out["difficult_direction"] = d["difficult_direction"].value_counts().rename("images").to_frame()
     if "kaggle_stage1_train" in images:
         out["stage1_x_multiread"] = pd.crosstab(
             images["kaggle_stage1_train"].map({True: "stage1_train", False: "not_stage1"}),

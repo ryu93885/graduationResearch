@@ -48,6 +48,8 @@ notebooks/             Colab / ローカル共通のノートブック
 tests/                 テスト（合成データを使用）
 docs/
   setup.md             実行環境の準備と使い方
+  procedure.md         実行手順書（実行の順番と、各段階で確かめること）
+  final_report_draft.md 最終レポートの草案（上書き形式で更新）
   reports/             進捗報告書（.docx の原本と、GitHub 上で読める .md 版）
   dataset/             データセットの資料（特徴・配布形態・利用条件・確認結果）
   revision_report.md   修正レポート（チャットでの指摘・相談・決定事項を日付ごとに記録）

@@ -1,11 +1,11 @@
 # 実行コマンド一覧（ローカル PC）
 
 - **作成日**：2026-11-12
-- **最終更新**：2026-11-12（6. `scripts/make_splits.py` を追加。2. の `images.csv` に評価用の層の列を追加）
+- **最終更新**：2026-11-12（0-2 に既存のライブラリを使う仮想環境の作り方を追加。6. `scripts/make_splits.py` を追加。2. の `images.csv` に評価用の層の列を追加）
 - このファイルで、プログラムを実行するコマンドを一括管理します。プログラムを追加・変更したら、ここに追記します。
 - 対象は**研究室のローカル GPU PC**です。Google Colab ではノートブックを使います（末尾の「Colab の場合」を参照）。
 - 特に書いていない限り、コマンドは**リポジトリのフォルダ（`graduationResearch/`）で、仮想環境を有効にしてから**実行します（0-3 を参照）。
-- 準備の詳しい説明は [`docs/setup.md`](docs/setup.md) にあります。
+- 準備の詳しい説明は [`docs/setup.md`](docs/setup.md)、実行の順番と各段階で確かめることは [`docs/procedure.md`](docs/procedure.md) にあります。
 
 ## 一覧
 
@@ -51,6 +51,20 @@ Windows（PowerShell）：
 
 ```powershell
 py -3 -m venv .venv
+```
+
+**既存のライブラリを使う場合**：研究室の PC に PyTorch などがすでに入っているときは、上の代わりに次のコマンドで作ります。PC に入っているライブラリをそのまま使い、足りないものだけを仮想環境に追加します（共用の環境は書き換えません）。conda を使っている場合は、先にその環境を有効にしてから実行します。
+
+Linux / macOS：
+
+```bash
+python3 -m venv --system-site-packages .venv
+```
+
+Windows（PowerShell）：
+
+```powershell
+py -3 -m venv --system-site-packages .venv
 ```
 
 ### 0-3. 仮想環境を有効にする（ターミナルを開くたび）

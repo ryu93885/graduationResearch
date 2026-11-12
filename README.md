@@ -14,7 +14,8 @@ RSNA Pneumonia Detection Challenge 2018 のデータを使い、次の3モデル
 
 ```
 docs/
-  reports/   進捗報告書（.docx の原本と、GitHub 上で読める .md 版）
+  reports/             進捗報告書（.docx の原本と、GitHub 上で読める .md 版）
+  revision_report.md   修正レポート（チャットでの指摘・相談・決定事項を日付ごとに記録）
 ```
 
 プログラムは今後このリポジトリに追加します。

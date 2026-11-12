@@ -1,0 +1,25 @@
+# Dataset (never commit images or annotations)
+data/
+*.dcm
+*.zip
+
+# Experiment outputs
+outputs/
+runs/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

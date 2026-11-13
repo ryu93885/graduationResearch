@@ -1,11 +1,11 @@
 import json
 
-import numpy as np
+import pandas as pd
 import pytest
 
-from gradresearch.analysis.dataset_report import auc, build_report, fleiss_kappa, md_table
 from gradresearch.data.mapping import load_mapping
 from gradresearch.data.sources import SOURCES
+from gradresearch.data.strata import difficulty_strata
 from gradresearch.data.tables import build_tables, load_tables
 
 
@@ -43,31 +43,44 @@ def test_build_tables_end_to_end(raw_dir, tmp_path):
     assert (processed / "dicom_headers.csv").exists()
 
     loaded = load_tables(processed)
-    report = build_report(loaded, {}, tmp_path / "out", title_date="2026-01-01")
-    text = report.read_text(encoding="utf-8")
-    assert "作成日：2026-01-01" in text and "view_x_class" in text
-    summary = json.loads((tmp_path / "out" / "summary.json").read_text(encoding="utf-8"))
-    assert summary["positive_images"] == 2 and summary["patients"] == 3
+    assert len(loaded["images"]) == 4
 
 
-def test_fleiss_kappa_known_values():
-    assert fleiss_kappa(np.array([[3, 0], [0, 3], [3, 0]])) == pytest.approx(1.0)
-    # Example from Fleiss (1971) as reproduced on Wikipedia: kappa = 0.210
-    table = np.array([
-        [0, 0, 0, 0, 14], [0, 2, 6, 4, 2], [0, 0, 3, 5, 6], [0, 3, 9, 2, 0], [2, 2, 8, 1, 1],
-        [7, 7, 0, 0, 0], [3, 2, 6, 3, 0], [2, 5, 3, 2, 2], [6, 5, 2, 1, 0], [0, 2, 2, 3, 7],
-    ])
-    assert fleiss_kappa(table) == pytest.approx(0.210, abs=1e-3)
+# ---------------------------------------------------------------- strata
+def _reads(rows):
+    return pd.DataFrame(rows, columns=["image_id", "reader_class", "max_probability"])
 
 
-def test_auc_simple_cases():
-    assert auc([0.1, 0.4, 0.35, 0.8], [0, 0, 1, 1]) == pytest.approx(0.75)
-    assert auc([1, 1, 0, 0], [1, 1, 0, 0]) == pytest.approx(1.0)
-    assert auc([1, 1, 1, 1], [1, 0, 1, 0]) == pytest.approx(0.5)
-
-
-def test_md_table_formats_integers_without_decimals():
-    import pandas as pd
-
-    text = md_table(pd.DataFrame({"v": [316.0, 0.5, 12345.0]}, index=["a", "b", "c"]))
-    assert "| a | 316 |" in text and "| b | 0.500 |" in text and "12,345" in text
+def test_difficulty_strata_groups_and_directions():
+    images = pd.DataFrame(
+        {
+            "image_id": ["u_neg", "u_pos", "split_pos", "split_neg", "overturned", "low", "single", "nolabel"],
+            "multi_read": [True, True, True, True, True, False, False, True],
+            "target": pd.array([0, 1, 1, 0, 0, 0, 1, None], dtype="Int64"),
+            "has_final_label": [True] * 7 + [False],
+        }
+    )
+    O, N, Z = "Lung Opacity", "No Lung Opacity / Not Normal", "Normal"
+    reads = _reads(
+        [
+            ("u_neg", Z, None), ("u_neg", N, None), ("u_neg", Z, None),
+            ("u_pos", O, "high"), ("u_pos", O, "medium"), ("u_pos", O, "medium"),
+            ("split_pos", O, "medium"), ("split_pos", O, "low"), ("split_pos", N, None),
+            ("split_neg", O, "low"), ("split_neg", N, None), ("split_neg", Z, None),
+            ("overturned", O, "low"), ("overturned", O, "low"), ("overturned", O, "medium"),
+            ("low", O, "low"),
+            ("single", O, "high"),
+            ("nolabel", O, "low"),
+        ]
+    )
+    s = difficulty_strata(images, reads).set_index("image_id")
+    assert s.loc["u_neg", "difficulty_group"] == "multi_unanimous"
+    assert s.loc["u_pos", "difficulty_group"] == "multi_unanimous"
+    assert s.loc["split_pos", "difficulty_group"] == "multi_difficult"
+    assert s.loc["split_pos", "difficult_direction"] == "final_positive_with_negative_read"
+    assert s.loc["split_neg", "difficult_direction"] == "final_negative_with_positive_read"
+    assert s.loc["overturned", "difficulty_group"] == "multi_difficult"  # unanimous positive, final negative
+    assert s.loc["overturned", "difficult_direction"] == "final_negative_with_positive_read"
+    assert s.loc["low", "difficulty_group"] == "single_low_prob"
+    assert s.loc["single", "difficulty_group"] == "single_other"
+    assert s.loc["split_pos", "n_positive_votes"] == 2 and s.loc["split_pos", "n_reads"] == 3

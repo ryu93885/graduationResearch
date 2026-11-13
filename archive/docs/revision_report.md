@@ -645,3 +645,64 @@ R-26 の比較（3人読影の画像を持つ患者だけから評価用を選�
 | Q-06 | Shih et al. (2019) の PDF の入手 | 保留 |
 | Q-11 | 研究室 PC の GPU・OS・CUDA | 保留 |
 | Q-12 | 仮説の判定基準 | 未回答 |
+
+---
+
+## 2026-11-13 研究の再開に向けたリポジトリの整理（Q-13〜Q-15）
+
+卒業研究を改めて始めるにあたり、これまでのファイルのうち、データ取得のプログラム以外を `archive/` に退避した。今後、新しいファイルは原則として `archive/` 以外に作る。今回は新しいファイルを作らず、ファイルの移動と既存ファイルの修正だけを行った。
+
+### 決定事項
+
+| 番号 | 内容 | 結果 |
+|---|---|---|
+| Q-13 | リポジトリ直下に残す「データ取得プログラム」の範囲 | **回答済み**：ダウンロード（`scripts/download_data.py`）と表の作成（`scripts/build_tables.py`）、およびそれらが使うモジュールとテストを残す |
+| Q-14 | 作業ルール `CLAUDE.md` の扱い | **回答済み**：直下に残し、「`archive/` は退避用。新しいファイルは原則 `archive/` 以外に作る」を1行追記する。他のルールは変えない |
+| Q-15 | 今回の整理の記録先 | **回答済み**：この修正レポート（移動後の `archive/docs/revision_report.md`）の末尾に追記する |
+
+### 直下に残したファイル
+
+| 種類 | ファイル |
+|---|---|
+| 設定・ルール | `CLAUDE.md`、`.gitignore`、`pyproject.toml` |
+| プログラム | `scripts/download_data.py`、`scripts/build_tables.py` |
+| モジュール | `src/gradresearch/` の `__init__.py`、`paths.py`、`data/__init__.py`、`data/download.py`、`data/sources.py`、`data/annotations.py`、`data/mapping.py`、`data/dicom_meta.py`、`data/strata.py`、`data/tables.py` |
+| テスト | `tests/__init__.py`、`tests/conftest.py`、`tests/test_download.py`、`tests/test_annotations.py`、`tests/test_tables.py`（修正。下記） |
+
+`data/strata.py`（評価用の層 `difficulty_group`、R-25）は、`data/tables.py` が `images.csv` の列を作るのに使うため残した。
+
+### `archive/` に移したファイル（元のフォルダ構成のまま）
+
+| 種類 | ファイル |
+|---|---|
+| 文書 | `README.md`、`COMMANDS.md`、`memo`、`docs/` 一式（この修正レポート、`setup.md`、`procedure.md`、`final_report_draft.md`、`dataset/`、`reports/`） |
+| ノートブック | `notebooks/01_data_download_and_inspection.ipynb` |
+| プログラム | `scripts/inspect_dataset.py`（データ確認レポート）、`scripts/make_splits.py`（交差検証の分割） |
+| モジュール | `src/gradresearch/analysis/`（`dataset_report.py`、`split_report.py`）、`src/gradresearch/data/splits.py`、`src/gradresearch/data/images.py`（画素の読み込み。ダウンロードと表の作成では使わない） |
+| テスト | `tests/test_splits.py`、`tests/test_tables.py`（修正前の版） |
+
+移動は `git mv` で行ったので、`git log --follow` で移動前の履歴をたどれる。
+
+### テストの修正
+
+- `tests/test_tables.py` には、表の作成のテストと、移したデータ確認レポート（`dataset_report.py`）のテストが同じファイルに入っていた。直下の版からレポートのテスト（`build_report`、`fleiss_kappa`、`auc`、`md_table`）を外し、修正前の版を `archive/tests/test_tables.py` に残した。
+- `data/strata.py` のテストは移した `tests/test_splits.py` に入っていたため、同じテストを直下の `tests/test_tables.py` に移した。
+- `python -m pytest -q` の結果：整理前 21 件、整理後 **14 件、すべて成功**（ダウンロード 6、アノテーション 4、表の作成と評価用の層 4）。
+- `python scripts/download_data.py --list` と `python scripts/build_tables.py --help` が動くことも確認した。
+
+### 注意点
+
+- 直下に `README.md`、`COMMANDS.md`、`docs/`（`setup.md`、`procedure.md`、`final_report_draft.md`、この修正レポート）がない状態になった。`CLAUDE.md` のルールは、これらの元の場所（`docs/revision_report.md` など）を指したままである。新しいファイルを作ってよい段階になったら、作り直すか、`archive/` から戻すかを決める。
+- 退避したプログラム（`archive/scripts/`、`archive/src/`）は、その場所からは import できない。使うときは元の場所に戻す。
+- ノートブックを移したため、Colab ではダウンロードと表の作成をノートブックから実行できない。Colab で使う段階になったら、ノートブックを作り直す。
+- 2026-11-12 までに作ったデータ（`data/raw/`、`data/processed/` の表）は、残したプログラムでそのまま作り直せる。`images.csv` の列も変わらない。
+
+### 現時点で未回答・保留の確認事項
+
+前のエントリから変わらない。研究を再開する中で改めて扱う。
+
+| 番号 | 内容 | 状態 |
+|---|---|---|
+| Q-06 | Shih et al. (2019) の PDF の入手 | 保留 |
+| Q-11 | 研究室 PC の GPU・OS・CUDA | 保留 |
+| Q-12 | 仮説の判定基準 | 未回答 |

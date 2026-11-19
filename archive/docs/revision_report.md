@@ -884,3 +884,16 @@ modelB のコードをレビューするときに、次の点を確かめる。
 | Q-11 | 研究室 PC の GPU・OS・CUDA | 保留 |
 | Q-12 | 仮説の判定基準（旧設計。Q-18 の回答次第で R-32 に置き換える） | 未回答 |
 | Q-18〜Q-23 | 上記 | 未回答 |
+
+---
+
+## 2026-11-19 新しい構成による研究を graduationResearch2 に移す
+
+ユーザーが新しいリポジトリ **graduationResearch2** を作成した。2026-11-18 版の研究の構成（ResNet-101 の分類、Faster R-CNN の検出、Grad-CAM）による研究は、このリポジトリ（graduationResearch）とは**独立した研究**として graduationResearch2 で進める。
+
+### 決定事項
+
+- 2026-11-18 のエントリの R-28〜R-35 と Q-18〜Q-23 は、同じ番号のまま graduationResearch2 の `docs/revision_report.md` に引き継いだ。以後の状態の変化は graduationResearch2 に記録する。
+- 構成の誤記の修正（R-29）と、目標値（R-32）・Grad-CAM の評価指標（R-33）・modelB の Grad-CAM（Q-22）の決定、R-34 の最終レポート草案への追記は、graduationResearch2 で行った。
+- このリポジトリの `docs/design/2026-11-18_research_structure.{docx,md}` は、受け取ったときの原文の記録として残す。修正版は graduationResearch2 にある。
+- このリポジトリのプログラム（データのダウンロードと表の作成）と、`archive/` の文書・記録は、そのまま残す。
